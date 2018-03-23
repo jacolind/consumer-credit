@@ -1,0 +1,18 @@
+>>> vardescr[vardescr.Type == 'categorical']
+                           Variable         Type
+1                           default  categorical
+7                    account_status  categorical
+8         account_worst_status_0_3m  categorical
+9       account_worst_status_12_24m  categorical
+10        account_worst_status_3_6m  categorical
+11       account_worst_status_6_12m  categorical
+15                merchant_category  categorical
+16                   merchant_group  categorical
+20                    name_in_email  categorical
+31       status_last_archived_0_24m  categorical
+32   status_2nd_last_archived_0_24m  categorical
+33   status_3rd_last_archived_0_24m  categorical
+34   status_max_archived_0_6_months  categorical
+35  status_max_archived_0_12_months  categorical
+36  status_max_archived_0_24_months  categorical
+42          worst_status_active_inv  categorical

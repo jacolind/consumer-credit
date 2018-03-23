@@ -1,0 +1,24 @@
+
+# a lot of NA in our X varibales. how should we handle that? qq
+
+# choice 1 is the one currently implemented
+
+# choice 1:
+# in the fitting step, ingore rows where any columns is NA (i.e. fit on "complete cases"). Then, in the predicting step, replace the NA in X with zero and use that data with the model to predict.
+# in addition, only use numerical X variables
+
+# choice 2:
+# NA handled as in choice 1
+# in addition, use numerical and categorical variables
+
+# choice 3:
+# replace NA with the column mean or median
+# the mean kan be imputed in the training set, and ev. also in the testing set.
+
+# choice 4:
+# replace NA with the "clustered mean". so first use some clustering algorithm to group observations together. then whenever there is an NA in row N column K look at the cluster that N belongs to, and impute that clusters mean value for kolumn K into the cell (N,K).
+# the mean kan be imputed in the training set, and ev. also in the testing set.
+
+# choice 5:
+# handle NA differently for different columns, based on our business knowledge. by looking at the names of the variables I see that some are related, e.g. account_status and account_worst_status (0-3m 12-24m )
+na.

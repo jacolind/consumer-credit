@@ -1,0 +1,276 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hello!</title>
+<link rel="stylesheet" href="https://stackedit.io/res-min/themes/base.css" />
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+</head>
+<body><div class="container"><h1 id="description-of-problem">Description of problem</h1>
+
+<p>Binary classificaiton problem. Predict y=1 for default. </p>
+
+<p>Variable names are hard to understand =&gt; use black box algorithm.</p>
+
+<p>we use auc because…</p>
+
+
+
+<h1 id="import-libraries">Import libraries</h1>
+
+
+
+<pre class="prettyprint"><code class="language-python hljs "><span class="hljs-comment"># basics :</span>
+<span class="hljs-keyword">import</span> matplotlib.pyplot <span class="hljs-keyword">as</span> plt
+<span class="hljs-keyword">import</span> pandas <span class="hljs-keyword">as</span> pd
+<span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np
+<span class="hljs-keyword">from</span> numpy <span class="hljs-keyword">import</span>*
+<span class="hljs-keyword">import</span> datetime
+
+<span class="hljs-comment"># scale data</span>
+<span class="hljs-keyword">from</span> sklearn.preprocessing <span class="hljs-keyword">import</span> StandardScaler
+<span class="hljs-comment"># models</span>
+<span class="hljs-keyword">from</span> sklearn.tree <span class="hljs-keyword">import</span> DecisionTreeClassifier
+<span class="hljs-keyword">from</span> sklearn.linear_model <span class="hljs-keyword">import</span> LogisticRegression
+<span class="hljs-keyword">from</span> sklearn.neighbors <span class="hljs-keyword">import</span> KNeighborsClassifier
+<span class="hljs-comment"># evaluation</span>
+<span class="hljs-keyword">from</span> sklearn.model_selection <span class="hljs-keyword">import</span> GridSearchCV
+<span class="hljs-keyword">from</span> sklearn.cross_validation <span class="hljs-keyword">import</span> train_test_split
+<span class="hljs-comment"># metrics</span>
+<span class="hljs-keyword">from</span> sklearn <span class="hljs-keyword">import</span> metrics
+<span class="hljs-keyword">from</span> sklearn.metrics <span class="hljs-keyword">import</span> roc_auc_score
+<span class="hljs-keyword">from</span> sklearn.metrics <span class="hljs-keyword">import</span> accuracy_score
+<span class="hljs-keyword">from</span> sklearn.metrics <span class="hljs-keyword">import</span> classification_report
+<span class="hljs-comment"># save models</span>
+<span class="hljs-keyword">from</span> sklearn.externals <span class="hljs-keyword">import</span> joblib
+
+<span class="hljs-comment"># keras for neural networks:</span>
+<span class="hljs-keyword">import</span> keras
+<span class="hljs-keyword">from</span> keras.layers <span class="hljs-keyword">import</span> Dense
+<span class="hljs-keyword">from</span> keras.models <span class="hljs-keyword">import</span> Sequential
+<span class="hljs-keyword">from</span> keras.utils <span class="hljs-keyword">import</span> to_categorical
+
+</code></pre>
+
+
+
+<h1 id="read-data">Read data</h1>
+
+
+
+<pre class="prettyprint"><code class="language-python hljs ">raw_data = pd.read_csv(<span class="hljs-string">'dataset.csv'</span>, sep=<span class="hljs-string">";"</span>)
+vardescr = pd.read_csv(<span class="hljs-string">'variabledescr.csv'</span>)</code></pre>
+
+
+
+<h1 id="clean-data">Clean data</h1>
+
+
+
+<h2 id="method-a-fill-na-with-zeroes">Method A: fill NA with zeroes</h2>
+
+
+
+<pre class="prettyprint"><code class="language-python hljs "><span class="hljs-comment"># create dfp: all rows that have deafult=NA. this df is used for prediction.</span>
+dfp = raw_data[pd.isnull(raw_data.default)]
+<span class="hljs-comment"># crate dfm: all rows that have deafult=1 or 0. this df is used for modeling.</span>
+dfm = raw_data[pd.notnull(raw_data.default)]
+
+<span class="hljs-comment"># how many NA?</span>
+total_na = dfm.isnull().sum().sum()
+total_cells =  dfm.count().sum()
+total_na / total_cells * <span class="hljs-number">100</span>
+
+<span class="hljs-comment"># handle NA in dfm :</span>
+dfm = dfm.fillna(<span class="hljs-number">0</span>) <span class="hljs-comment"># fill NA with zero</span>
+
+<span class="hljs-comment"># Select y for prediction and modeling</span>
+yp = dfp[<span class="hljs-string">'default'</span>].as_matrix()
+ym = dfm[<span class="hljs-string">'default'</span>].as_matrix()
+ym.mean() <span class="hljs-comment">#concl: 0.014 so very few deafults</span>
+
+<span class="hljs-comment"># Select X variables</span>
+exclude = [<span class="hljs-string">'default'</span>, <span class="hljs-string">'uuid'</span>, <span class="hljs-string">'merchant_category'</span>, <span class="hljs-string">'merchant_group'</span>, <span class="hljs-string">'name_in_email'</span>]
+<span class="hljs-comment"># .info() reveals these are dtype = object so exclude them to save time</span>
+Xm = dfm.drop(exclude, axis=<span class="hljs-number">1</span>).as_matrix()
+Xp = dfp.drop(exclude, axis=<span class="hljs-number">1</span>).fillna(<span class="hljs-number">0</span>).as_matrix()
+ym.shape[<span class="hljs-number">0</span>] == Xm.shape[<span class="hljs-number">0</span>]
+
+<span class="hljs-comment"># standardize X</span>
+scaler = StandardScaler().fit(Xm)
+Xm = scaler.transform(Xm)
+Xp = scaler.transform(Xp)</code></pre>
+
+
+
+<h2 id="method-b-fill-na-with-column-mean">Method B: fill NA with column mean</h2>
+
+
+
+<pre class="prettyprint"><code class="language-python hljs "><span class="hljs-comment"># qq write this code</span></code></pre>
+
+
+
+<h1 id="fit-and-predict-all-models">Fit and predict all models</h1>
+
+<p>We the following methods:</p>
+
+<ul>
+<li>Logistic regression</li>
+<li>K Nearest neighbour</li>
+<li>Decision tree</li>
+</ul>
+
+
+
+<pre class="prettyprint"><code class="language-python hljs "><span class="hljs-comment"># select scoring metric</span>
+scoring = <span class="hljs-string">'roc_auc'</span>
+<span class="hljs-comment"># number of crossvalidation folds:</span>
+cv = <span class="hljs-number">5</span></code></pre>
+
+
+
+<h2 id="logistic-regression-reg">Logistic regression (reg)</h2>
+
+<p>param_grid_reLike the alpha parameter of lasso and ridge regularization  that you saw earlier, logistic regression also has a regularization parameter: CC. CC controls the inverse of the regularization strength, and this is what you will tune in this exercise. A large CC can lead to an overfit model, while a small CC can lead to an underfit model.g = {‘C’: c_space, ‘penalty’: [‘l1’, ‘l2’]}</p>
+
+
+
+<pre class="prettyprint"><code class="language-python hljs "><span class="hljs-comment"># Create the hyperparameter grid</span>
+c_space = np.logspace(-<span class="hljs-number">5</span>, <span class="hljs-number">8</span>, <span class="hljs-number">15</span>)
+param_grid_reg = {<span class="hljs-string">'C'</span>: c_space, <span class="hljs-string">'penalty'</span>: [<span class="hljs-string">'l1'</span>, <span class="hljs-string">'l2'</span>]}
+<span class="hljs-comment"># Instantiate the logistic regression classifier: logreg</span>
+reg = LogisticRegression()
+<span class="hljs-comment"># Instantiate the GridSearchCV object</span>
+reg_cv = GridSearchCV(reg, param_grid_reg, cv=cv, scoring=scoring)
+
+<span class="hljs-comment"># first time you run script, below should be false.</span>
+<span class="hljs-comment"># Fit it to the training data</span>
+load_reg = <span class="hljs-keyword">True</span>
+<span class="hljs-comment"># load model or fit</span>
+<span class="hljs-keyword">if</span> load_reg == <span class="hljs-keyword">True</span>:
+    reg_cv = joblib.load(<span class="hljs-string">"reg_cv.pkl"</span>)
+<span class="hljs-keyword">else</span>:
+    t1 = datetime.datetime.now()
+    reg_cv.fit(Xm, ym)
+    t2 = datetime.datetime.now()
+    reg_td = t2-t1
+    print(<span class="hljs-string">"Fitting time H:MM:SS "</span>, reg_td)
+    <span class="hljs-comment"># save model</span>
+    joblib.dump(reg_cv, <span class="hljs-string">"reg_cv.pkl"</span>)
+
+<span class="hljs-comment"># Print the optimal parameters and best score</span>
+print(<span class="hljs-string">"reg"</span>)
+print(<span class="hljs-string">"Tuned Parameter: {}"</span>.format(reg_cv.best_params_))
+print(<span class="hljs-string">"Tuned Accuracy: {}"</span>.format(reg_cv.best_score_))
+<span class="hljs-comment"># params C 0.44, penatly l2. score 0.876</span></code></pre>
+
+
+
+<h2 id="decision-tree-tree">Decision tree (tree)</h2>
+
+
+
+<pre class="prettyprint"><code class="language-python hljs "><span class="hljs-comment"># Setup the parameters</span>
+param_dist = {<span class="hljs-string">"max_depth"</span>: [<span class="hljs-keyword">None</span>, <span class="hljs-number">10</span>, <span class="hljs-number">20</span>, <span class="hljs-number">30</span>], <span class="hljs-comment"># 30-50% av nr features</span>
+              <span class="hljs-string">"max_features"</span>: [<span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">20</span>, <span class="hljs-number">30</span>, Xm.shape[<span class="hljs-number">1</span>]],
+              <span class="hljs-string">"min_samples_leaf"</span>: [<span class="hljs-number">1</span>, <span class="hljs-number">10</span>, <span class="hljs-number">20</span>, <span class="hljs-number">30</span>, Xm.shape[<span class="hljs-number">1</span>]],
+              <span class="hljs-string">"criterion"</span>: [<span class="hljs-string">"gini"</span>, <span class="hljs-string">"entropy"</span>]}
+<span class="hljs-comment"># Instantiate a Decision Tree classifier: tree</span>
+tree = DecisionTreeClassifier()
+<span class="hljs-comment"># Instantiate the GridSearchCV() object: tree_cv</span>
+tree_cv = GridSearchCV(tree, param_dist, cv=cv, scoring=scoring, n_jobs = -<span class="hljs-number">1</span>)
+
+<span class="hljs-comment"># Fit it to the data</span>
+load_tree = <span class="hljs-keyword">False</span>
+<span class="hljs-keyword">if</span> load_tree == <span class="hljs-keyword">True</span>:
+    tree_cv = joblib.load(<span class="hljs-string">'tree_cv.pkl'</span>)
+<span class="hljs-keyword">else</span>:
+    t1 = datetime.datetime.now()
+    tree_cv.fit(Xm, ym)
+    t2 = datetime.datetime.now()
+    tree_td = t2-t1
+    print(<span class="hljs-string">"Fitting time H:MM:SS "</span>, tree_td)
+    <span class="hljs-comment"># save model</span>
+    joblib.dump(tree_cv, <span class="hljs-string">"tree_cv.pkl"</span>)
+
+<span class="hljs-comment"># Print the tuned parameters and score</span>
+print(<span class="hljs-string">"tree"</span>)
+print(<span class="hljs-string">"Tuned Parameters: {}"</span>.format(tree_cv.best_params_))
+print(<span class="hljs-string">"Best score is {}"</span>.format(tree_cv.best_score_))
+<span class="hljs-comment"># output: 'criterion': 'gini', 'max_depth': 10, 'max_features': 10, 'min_samples_leaf': 38}</span>
+<span class="hljs-comment"># auc score 0.84 </span></code></pre>
+
+
+
+<h2 id="k-nearest-neighbour-knn">K Nearest neighbour (knn)</h2>
+
+
+
+<pre class="prettyprint"><code class="language-python hljs "><span class="hljs-comment"># set up parameters</span>
+k_range = list(range(<span class="hljs-number">4</span>, <span class="hljs-number">8</span>))
+param_grid = dict(n_neighbors = k_range)
+<span class="hljs-comment"># instantiate</span>
+knn = KNeighborsClassifier()
+<span class="hljs-comment"># knn = KNeighborsClassifier(n_neighbors=5)</span>
+knn_cv = GridSearchCV(knn, param_grid, cv=cv, scoring=scoring, n_jobs = -<span class="hljs-number">1</span>)
+<span class="hljs-comment"># fit</span>
+load_knn = <span class="hljs-keyword">False</span>
+<span class="hljs-keyword">if</span> load_knn == <span class="hljs-keyword">True</span>:
+    knn_cv = joblib.load(<span class="hljs-string">'knn_cv.pkl'</span>)
+<span class="hljs-keyword">else</span>:
+    t1 = datetime.datetime.now()
+    knn_cv.fit(Xm, ym)
+    t2 = datetime.datetime.now()
+    knn_td = t2-t1
+    print(<span class="hljs-string">"Fitting time H:MM:SS "</span>, knn_td)
+<span class="hljs-comment"># examine the best model</span>
+print(<span class="hljs-string">"Tuned parameters: {}"</span>.format(knn_cv.best_params_))
+print(<span class="hljs-string">"Best score is {}"</span>.format(knn_cv.best_score_))
+print(knn_cv.best_estimator_)</code></pre>
+
+<p>Another method is a for loop. GridSearchCV should be faster but for some reason it takes a lot of time to compute.</p>
+
+
+
+<pre class="prettyprint"><code class="language-python hljs "><span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> [<span class="hljs-number">2</span>,<span class="hljs-number">4</span>,<span class="hljs-number">8</span>,<span class="hljs-number">12</span>]:
+    <span class="hljs-comment"># Instantiate a Decision knn classifier: knn</span>
+    knn = KNeighborsClassifier(n_neighbors = k)
+    <span class="hljs-comment"># calc scores</span>
+    scores = cross_val_score(knn, Xm, ym, cv=<span class="hljs-number">5</span>, scoring=scoring)
+    <span class="hljs-comment"># Print the tuned parameters and score</span>
+    print(<span class="hljs-string">"knn"</span>, k, scores.mean())</code></pre>
+
+
+
+<h1 id="compare-models">Compare models</h1>
+
+<p>We define best model as highest AUC. </p>
+
+
+
+<pre class="prettyprint"><code class="language-python hljs ">print(<span class="hljs-string">"reg, tree, knn"</span>)
+print(reg_cv.best_score_, 
+      tree_cv.best_score_
+      knn_cv.best_score_
+     )
+print(<span class="hljs-string">"Winning model is:"</span>, <span class="hljs-string">"..."</span>)</code></pre>
+
+
+
+<h1 id="final-predictions">Final predictions</h1>
+
+<p>We take the model with the highest AUC above and use that to make prediction on <code>Xp</code>.</p>
+
+
+
+<pre class="prettyprint"><code class="language-python hljs "><span class="hljs-comment"># instantiate model with optimal parameters</span>
+logreg = LogisticRegression(C = <span class="hljs-number">0.44</span>, penalty = <span class="hljs-string">'l2'</span>)
+<span class="hljs-comment"># fit on entire modeling dataframe </span>
+logreg.fit(Xm, ym)
+<span class="hljs-comment"># predict </span>
+predictions = logreg.predict_proba(Xp)[:,<span class="hljs-number">1</span>]
+<span class="hljs-comment"># save predictions and IDs to csv</span>
+</code></pre></div></body>
+</html>

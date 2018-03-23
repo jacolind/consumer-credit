@@ -1,0 +1,3 @@
+after1.py == impute2.py
+
+after2 is the continuation of after1. it is a shorter version of "impute2.py" because that contained a lot of notes from the datacamp code

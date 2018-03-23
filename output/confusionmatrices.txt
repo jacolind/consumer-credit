@@ -1,0 +1,35 @@
+logreg
+[[22152    17]
+[  316     9]]
+            precision    recall  f1-score   support
+
+       0.0       0.99      1.00      0.99     22169
+       1.0       0.35      0.03      0.05       325
+
+avg / total       0.98      0.99      0.98     22494
+
+Mean of predictions:  0.0011558637859
+
+knn
+[[22150    19]
+[  312    13]]
+            precision    recall  f1-score   support
+
+       0.0       0.99      1.00      0.99     22169
+       1.0       0.41      0.04      0.07       325
+
+avg / total       0.98      0.99      0.98     22494
+
+Mean of predictions:  0.00142260158264
+
+nnet
+[[22144    25]
+[  313    12]]
+            precision    recall  f1-score   support
+
+       0.0       0.99      1.00      0.99     22169
+       1.0       0.32      0.04      0.07       325
+
+avg / total       0.98      0.98      0.98     22494
+
+Mean of predictions:  0.00164488307993

@@ -1,0 +1,25 @@
+fillna ( 0 )
+
+# check shapes look ok.
+... X_train.shape, X_test.shape, Xp.shape
+((6833, 38), (2278, 38), (10000, 38))
+>>> y_train.shape, y_test.shape, yp.shape
+((6833,), (2278,), (10000,))
+>>> # concl: size is enough for NN and KNN
+... (X_train.shape[0] + X_test.shape[0]) / len(raw_data)
+0.09113187164919581
+>>>
+
+
+
+
+drop NA
+
+> # check shapes look ok.
+... X_train.shape, X_test.shape, Xp.shape
+((67482, 38), (22494, 38), (10000, 38))
+>>> y_train.shape, y_test.shape, yp.shape
+((67482,), (22494,), (10000,))
+>>> # concl: size is enough for NN and KNN
+... (X_train.shape[0] + X_test.shape[0]) / len(raw_data)
+0.8999759942386173
