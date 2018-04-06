@@ -1,8 +1,10 @@
-# Case intro
+# Consumer-credit
+
+## Case intro
 
 A binary classification problem.
 
-# Method
+## Method
 
 The approach is the following:
 
@@ -21,13 +23,13 @@ Machine learning algorithms I used (models in step 2)
 
 Language: Python.
 
-# Important files
+## Important files
 
 - `do2.py` was the file I submitted in the case. It tries reg, knn, nnet. It uses knn for final predictions.
 - `do3.py` is a continuation of `do2.py`. It tries reg, trees, knn. It uses reg for final predicitons.
 - `do4.py` is a continuation of `do3.py`. It introduces a threshold so that I can balance the tradeoff between type I and type II error.
 
-# Folders
+## Folders
 
 Here is what each folder is supposed to contain.
 
@@ -38,6 +40,8 @@ Here is what each folder is supposed to contain.
 - `output-predictions` the predicted probabilities/classes
 - `output` all other output, such as tables, graphs, etc. 
 
-# Developments
+## Status
+
+This repo is a bit messy due to the creation of many files, because I worked here and there rarely dedicated long hours in a row.
 
 I want to do more with this data. See `TODO.txt`
