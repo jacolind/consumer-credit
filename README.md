@@ -1,8 +1,13 @@
 # Consumer-credit
 
-## Case intro
+## Problem statement
 
-A binary classification problem.
+This is a binary classification problem. 
+The company issues short term consumer credit 
+(people buy shoes today but pay back later).
+If consumers do not pay back, the company will have higher costs. 
+If consumers do not buy, the company will have lower revenue.
+The company must balance these two sides in the classification algo of who gets approved.
 
 ## Method
 
